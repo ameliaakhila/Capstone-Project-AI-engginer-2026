@@ -1,0 +1,232 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis]
+}
+
+model District {
+  id                String           @id @default(uuid())
+  name              String           @unique
+  code              String           @unique
+  latitude          Float
+  longitude         Float
+  saturationPercent Float            @default(0)
+  status            DistrictStatus   @default(STABLE)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  forecasts         AiForecast[]
+  audits            Audit[]
+  entities          Entity[]
+  flaggedClusters   FlaggedCluster[]
+  saturationLogs    SaturationLog[]
+  violations        Violation[]
+
+  @@map("districts")
+}
+
+model Entity {
+  id              String       @id @default(uuid())
+  name            String
+  type            EntityType
+  address         String?
+  latitude        Float
+  longitude       Float
+  placeId         String?      @unique
+  store           String?
+  kelurahan       String?
+  rating          Float?       @default(0)
+  totalRatings    Int?         @default(0)
+  permitStatus    PermitStatus @default(UNDER_REVIEW)
+  complianceScore Float?       @default(0)
+  isFlagged       Boolean      @default(false)
+  districtId      String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  audits          Audit[]
+  district        District     @relation(fields: [districtId], references: [id])
+  violations      Violation[]
+
+  @@index([districtId])
+  @@index([type])
+  @@index([latitude, longitude])
+  @@map("entities")
+}
+
+model Violation {
+  id           String          @id @default(uuid())
+  code         String          @unique
+  description  String?
+  ruleType     RuleType        @default(PROXIMITY)
+  severity     Severity        @default(WARNING)
+  status       ViolationStatus @default(ACTIVE)
+  distanceM    Float?
+  entityId     String
+  districtId   String
+  zoningRuleId String?
+  detectedAt   DateTime        @default(now())
+  resolvedAt   DateTime?
+  deletedAt    DateTime?
+  district     District        @relation(fields: [districtId], references: [id])
+  entity       Entity          @relation(fields: [entityId], references: [id])
+  zoningRule   ZoningRule?     @relation(fields: [zoningRuleId], references: [id])
+
+  @@index([status])
+  @@index([severity])
+  @@map("violations")
+}
+
+model ZoningRule {
+  id                  String      @id @default(uuid())
+  name                String
+  ruleType            RuleType
+  minDistanceMeters   Float?
+  maxEntitiesPerZone  Int?
+  targetEntityType    EntityType
+  referenceEntityType EntityType?
+  createdAt           DateTime    @default(now())
+  violations          Violation[]
+
+  @@map("zoning_rules")
+}
+
+model Audit {
+  id          String        @id @default(uuid())
+  code        String        @unique
+  priority    AuditPriority @default(MEDIUM)
+  status      String        @default("PENDING")
+  findings    String?
+  entityId    String
+  districtId  String
+  createdAt   DateTime      @default(now())
+  completedAt DateTime?
+  district    District      @relation(fields: [districtId], references: [id])
+  entity      Entity        @relation(fields: [entityId], references: [id])
+
+  @@map("audits")
+}
+
+model SaturationLog {
+  id                String   @id @default(uuid())
+  saturationPercent Float
+  violationCount    Int      @default(0)
+  districtId        String
+  recordedAt        DateTime @default(now())
+  district          District @relation(fields: [districtId], references: [id])
+
+  @@index([districtId, recordedAt])
+  @@map("saturation_logs")
+}
+
+model FlaggedCluster {
+  id          String   @id @default(uuid())
+  streetName  String
+  description String?
+  entityCount Int      @default(0)
+  districtId  String
+  district    District @relation(fields: [districtId], references: [id])
+
+  @@map("flagged_clusters")
+}
+
+model AiForecast {
+  id              String   @id @default(uuid())
+  probability     Float
+  prediction      String
+  timeframeMonths Int      @default(6)
+  districtId      String
+  createdAt       DateTime @default(now())
+  district        District @relation(fields: [districtId], references: [id])
+
+  @@map("ai_forecasts")
+}
+
+model SystemSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt
+
+  @@map("system_settings")
+}
+
+model Role {
+  id    Int    @id @default(autoincrement())
+  name  String @unique @db.VarChar(50)
+  users User[]
+
+  @@map("roles")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique @db.VarChar(255)
+  username  String   @unique @db.VarChar(100)
+  password  String   @db.VarChar(255)
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  roleId    Int      @default(2)
+  role      Role     @relation(fields: [roleId], references: [id])
+
+  @@map("users")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
+}
+
+enum EntityType {
+  PASAR
+  MINIMARKET
+  SUPERMARKET
+}
+
+enum PermitStatus {
+  APPROVED
+  UNDER_REVIEW
+  REJECTED
+  EXPIRED
+}
+
+enum ViolationStatus {
+  ACTIVE
+  UNDER_REVIEW
+  RESOLVED
+}
+
+enum Severity {
+  CRITICAL
+  WARNING
+  ELEVATED
+  STABLE
+}
+
+enum DistrictStatus {
+  CRITICAL
+  WARNING
+  ELEVATED
+  SAFE
+  STABLE
+}
+
+enum RuleType {
+  PROXIMITY
+  DENSITY
+  CAPACITY
+}
+
+enum AuditPriority {
+  HIGH
+  MEDIUM
+  LOW
+}

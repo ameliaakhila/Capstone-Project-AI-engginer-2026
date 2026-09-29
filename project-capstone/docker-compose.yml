@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # ─── Postgres (PostGIS) — unchanged from original config ──────
+  postgres:
+    image: postgis/postgis:15-3.4
+    container_name: zonify-db
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: zonify
+      POSTGRES_PASSWORD: zonify_secret
+      POSTGRES_DB: zonify_db
+    volumes:
+      - zonify_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zonify -d zonify_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── API service — built from root Dockerfile (api-final target) ──
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api-final
+    container_name: zonify-api
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: "3001"
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://zonify:zonify_secret@zonify-db:5432/zonify_db"
+      # AI_SERVICE_URL is an external dependency from another repository.
+      # Default points to host.docker.internal for local development.
+      # Update this URL when deploying to production.
+      AI_SERVICE_URL: "https://melissalau-zonify-api.hf.space"
+      ALLOWED_ORIGINS: "https://zonify.my.id,http://localhost:5173,http://localhost:3001,http://localhost:80,http://localhost"
+
+    volumes:
+      - ./apps/api/src:/app/apps/api/src
+      - ./prisma:/app/prisma
+
+  # ─── Web service — built from root Dockerfile (web-final target) ──
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web-final
+      args:
+        # VITE_ vars are baked into the JS bundle at build time by Vite.
+        # Empty VITE_API_URL = same-origin requests, proxied by Nginx inside
+        # the container to zonify-api:3001.
+        VITE_API_URL: ""
+        VITE_API_BASE_URL: "/api/v1"
+    container_name: zonify-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "5173:80"
+
+volumes:
+  zonify_pgdata:

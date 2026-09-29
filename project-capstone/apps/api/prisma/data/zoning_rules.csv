@@ -1,0 +1,4 @@
+name,ruleType,minDistanceMeters,maxEntitiesPerZone,targetEntityType,referenceEntityType
+Minimarket Proximity to Pasar,PROXIMITY,500,,MINIMARKET,PASAR
+Minimarket Mutual Proximity,PROXIMITY,100,,MINIMARKET,MINIMARKET
+Zone Capacity Limit,CAPACITY,,15,MINIMARKET,

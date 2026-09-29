@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+
+  .icon-fill {
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0b1326;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #2d3449;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #4a4455;
+  }
+
+  .glass-panel {
+    background-color: rgba(45, 52, 73, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(74, 68, 85, 0.2);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1)
+  }
+
+  .glow-active {
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.3)
+  }
+
+  .glow-danger {
+    box-shadow: 0 0 20px rgba(147, 0, 10, 0.4)
+  }
+
+  .glow-accent {
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.2)
+  }
+
+  .map-bg {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuCtXNH1Yf_KkEZJybQd_ibqrutVHvp92LTiPDhWFujKa72kJRkGgpaLZ7-nx6I-zz0e0T9ORdnxEGPu__YdLmnEpG70wPfe0tX8Je_8Us25_Eht0vmVKI26kNUKmIQeTAIEuzLY3O-5d4cmCWhNo10Vv3_S_kW4mRN577HCXX-KsdeUBaw8QAa2lAmJm6G476tOC9R6jhui3m-zccIK0thP-sLsAwwYW1sUuKMfX8tMmAFHwBWGArl8-7r1eA7GDSREedmsMb9Dg09s);
+    background-size: cover;
+    background-position: center
+  }
+
+  .map-overlay {
+    background: linear-gradient(180deg, rgba(11, 19, 38, 0.8) 0%, rgba(11, 19, 38, 0.4) 50%, rgba(11, 19, 38, 0.8) 100%)
+  }
+
+  /* 🔥 TAMBAHAN BARU (LEAFLET SMOOTH DRAG) */
+  .leaflet-container {
+    cursor: grab;
+  }
+
+  .leaflet-container:active {
+    cursor: grabbing;
+  }
+}

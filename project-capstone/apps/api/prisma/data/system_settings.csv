@@ -1,0 +1,9 @@
+key,value
+defaultBasemap,satellite-streets
+telemetryZoom,14
+auditRadiusRings,true
+alertCriticalViolations,true
+alertAuditSync,true
+alertEngineUpdates,false
+interfaceTheme,dark
+lastSyncAt,$NOW$
