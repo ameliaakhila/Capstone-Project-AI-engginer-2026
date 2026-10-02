@@ -52,6 +52,17 @@ app.use('/api/v1/notifications', notificationsRoutes);
 // route untuk test middleware authenticate dan isAdmin
 app.use('/api/v1/test', testRoutes);
 
+// ─── Root Route ──────────────────────────────────────────
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Zonify API Server is Running',
+    version: '1.0.0',
+    status: 'online'
+  });
+});
+
+
 // ─── Health Check ───────────────────────────────────────
 app.get('/api/v1/health', (req, res) => {
   res.json({
@@ -66,7 +77,7 @@ app.get('/api/v1/health', (req, res) => {
 // ─── 404 Handler ────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).json({
-    success: false,
+    success: true,
     message: 'Route tidak ditemukan',
     path: req.originalUrl,
   });
@@ -97,11 +108,15 @@ app.use((err, req, res, next) => {
 });
 
 // ─── Start Server ───────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`\n Zonify API running at http://localhost:${PORT}`);
-  console.log(` API Base: http://localhost:${PORT}/api/v1`);
-  console.log(` Health:   http://localhost:${PORT}/api/v1/health`);
-  console.log(` Auth:     http://localhost:${PORT}/api/v1/auth`);
-  console.log(` AI:       http://localhost:${PORT}/api/v1/ai`);
-  console.log(` Test:     http://localhost:${PORT}/api/v1/test\n`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`\n Zonify API running at http://localhost:${PORT}`);
+    console.log(` API Base: http://localhost:${PORT}/api/v1`);
+    console.log(` Health:   http://localhost:${PORT}/api/v1/health`);
+    console.log(` Auth:     http://localhost:${PORT}/api/v1/auth`);
+    console.log(` AI:       http://localhost:${PORT}/api/v1/ai`);
+    console.log(` Test:     http://localhost:${PORT}/api/v1/test\n`);
+  });
+}
+
+export default app;
