@@ -21,7 +21,7 @@
     "react-leaflet": "^4.2.1",
     "react-leaflet-heatmap-layer": "^2.0.0",
     "react-leaflet-markercluster": "^5.0.0-rc.0",
-    "react-router-dom": "^6.22.0"
+    "react-router-dom": "^7.18.4"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",

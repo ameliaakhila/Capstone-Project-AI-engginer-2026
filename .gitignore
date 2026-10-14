@@ -8,3 +8,6 @@ Api/.env
 # Machine Learning & Data
 Api/logs/
 Api/data/
+
+# Frontend  & Backend
+**/**/node_modules
