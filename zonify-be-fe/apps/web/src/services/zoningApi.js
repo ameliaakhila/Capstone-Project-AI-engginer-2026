@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? '/api/v1';
+const API_BASE_URL = `${import.meta.env.VITE_API_URL ?? ''}/api/v1`;
 
 export const getZoningMapPoints = async () => {
   const token = localStorage.getItem('token'); // Tambahkan token juga di sini
