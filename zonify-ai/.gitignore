@@ -1,1 +1,36 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
+# Python / Flask
+__pycache__/
+*.py[cod]
+*$py.class
+instance/
+.webassets-cache
+
+# Jupyter Notebook (jika kamu pakai Jupyter lokal)
+.ipynb_checkpoints
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log

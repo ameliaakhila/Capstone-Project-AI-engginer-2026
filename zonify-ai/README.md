@@ -1,145 +1,182 @@
-# Zonasi ML API
+---
+title: Zonify Api
+emoji: 🏪
+colorFrom: green
+colorTo: red
+sdk: docker
+pinned: false
+app_port: 7860
+---
 
-REST API untuk inferensi model deteksi pelanggaran zonasi minimarket, dibangun dengan FastAPI + TensorFlow.
+# Zonify AI API 🏪
+
+REST API untuk deteksi pelanggaran zonasi minimarket berdasarkan **Perpres 112/2007**, dibangun dengan Flask + TensorFlow.
 
 ---
 
-## Requirements
+## 🛠️ Setup & Installation
 
-- Python 3.12
-- pip
-
----
-
-## Setup
-
-### 1. Clone repo & masuk ke folder
-
-```bash
-cd ml-api
-```
-
-### 2. Install dependencies
-
-```bash
-python -m pip install -r requirements.txt
-```
-
-### 3. Pastikan file model tersedia
-
-Struktur folder harus seperti ini:
-
-```
-ml-api/
-├── main.py
-├── requirements.txt
-├── README.md
-├── models/
-│   ├── zonify_model.keras
-│   └── scaler.pkl
-```
-
-> `zonify_model.keras` dan `scaler.pkl` bisa didownload dari Google Drive tim atau GitHub repo.
-
-### 4. Jalankan server
-
-```bash
-python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-Server berjalan di: `http://localhost:8000`
+Lihat [QUICK_START.md](./QUICK_START.md) untuk instruksi setup lengkap.
 
 ---
 
-## Endpoints
+## 🚀 Base URL
 
-### `POST /predict`
+```
+https://melissalau-zonify-api.hf.space
+```
 
-Memprediksi apakah sebuah lokasi melanggar zonasi minimarket.
+---
 
-**Request Body:**
+## 🔗 Endpoints
+
+| Method | Endpoint | Fungsi |
+|---|---|---|
+| GET | `/` | Status server |
+| POST | `/api/v1/ai/predict` | Prediksi pelanggaran zonasi |
+| GET | `/api/v1/ai/analytics` | Data statistik dashboard |
+| GET | `/api/v1/ai/model-metadata` | Info & metrik model |
+
+---
+
+## POST `/api/zonasi/predict`
+
+### Request Body
 
 ```json
 {
   "latitude": -6.2363,
   "longitude": 106.8568,
-  "competitor_density_500m": 5.0,
-  "jarak_kompetitor_meter": 162.63,
-  "kompetitor_head_to_head": 0.0,
-  "cluster_hdbscan_makro": 2.0,
-  "cluster_hdbscan_prob": 0.85,
+  "competitor_density": 5,
+  "jarak_kompetitor": 162.63,
+  "head_to_head": 0,
+  "cluster_macro": 4,
+  "cluster_hotspot": -1,
   "is_hotspot": 1
 }
 ```
 
-**Field Validation:**
+### Field Description
 
-| Field | Tipe | Validasi |
+| Field | Tipe | Keterangan |
 |---|---|---|
-| `latitude` | float | -6.4 sampai -6.1 (Jakarta Selatan) |
-| `longitude` | float | 106.7 sampai 107.0 (Jakarta Selatan) |
-| `competitor_density_500m` | float | >= 0 |
-| `jarak_kompetitor_meter` | float | >= 0 |
-| `cluster_hdbscan_prob` | float | 0.0 sampai 1.0 |
-| `is_hotspot` | int | 0 atau 1 |
+| `latitude` | float | Koordinat lintang lokasi |
+| `longitude` | float | Koordinat bujur lokasi |
+| `competitor_density` | float | Jumlah kompetitor radius 500m |
+| `jarak_kompetitor` | float | Jarak ke kompetitor terdekat (meter) |
+| `head_to_head` | float | Flag kompetitor brand sama (0/1) |
+| `cluster_macro` | float | ID cluster makro HDBSCAN |
+| `cluster_hotspot` | float | Probabilitas cluster HDBSCAN |
+| `is_hotspot` | int | Flag area hotspot (0/1) |
 
-**Response:**
+### Response
 
 ```json
 {
-  "violation_probability": 0.7231,
-  "verdict": "PELANGGARAN",
-  "threshold_used": 0.41
+  "status": "success",
+  "data": {
+    "input_received": { "..." },
+    "prediction": {
+      "probability": 0.7231,
+      "confidence_percentage": 72.31,
+      "is_violation": true,
+      "verdict": "⚠️ PELANGGARAN"
+    },
+    "indicator_breakdown": {
+      "kepadatan_kompetitor_500m": {
+        "nilai": 5,
+        "status": "Tinggi",
+        "is_safe": false
+      },
+      "jarak_kompetitor_terdekat": {
+        "nilai": 162.63,
+        "status": "Terlalu Dekat (< 500m)",
+        "is_safe": false
+      },
+      "hotspot_persaingan": {
+        "nilai": 1,
+        "status": "Ya",
+        "is_safe": false
+      }
+    },
+    "ai_recommendation": "Lokasi ini berisiko tinggi..."
+  }
 }
 ```
 
-| Field | Keterangan |
-|---|---|
-| `violation_probability` | Probabilitas pelanggaran (0.0 – 1.0) |
-| `verdict` | `"PELANGGARAN"` atau `"PATUH"` |
-| `threshold_used` | Threshold yang digunakan (0.41) |
-
 ---
 
-### `GET /health`
+## GET `/api/zonasi/analytics`
 
-Cek status server.
-
-**Response:**
+### Response
 
 ```json
-{ "status": "ok" }
+{
+  "status": "success",
+  "data": {
+    "summary_cards": {
+      "total_checks": 510,
+      "total_violations": 146,
+      "total_compliant": 364,
+      "accuracy_rate_current": "78.2%"
+    },
+    "charts": {
+      "compliance_distribution": ["..."],
+      "cluster_analysis": ["..."]
+    }
+  }
+}
 ```
 
 ---
 
-## Swagger UI
+## GET `/api/zonasi/model-metadata`
 
-Buka browser dan akses:
+### Response
 
-```
-http://localhost:8000/docs
+```json
+{
+  "status": "success",
+  "data": {
+    "model_name": "Zonify Attention-Based Classifier",
+    "version": "3.0.0",
+    "framework": "TensorFlow 2.x (Keras)",
+    "training_metrics": {
+      "metrics_evaluated": [
+        { "metric": "Accuracy", "value": 0.7744 },
+        { "metric": "ROC-AUC Score", "value": 0.8655 },
+        { "metric": "F1-Score (Violation)", "value": 0.5455 },
+        { "metric": "Recall (Violation)", "value": 0.90 }
+      ]
+    }
+  }
+}
 ```
 
 ---
 
-## Model Info
+## 🤖 AI Advisor
+
+API ini menggunakan **Google Gemini 2.5 Flash** untuk rekomendasi kebijakan otomatis. Fitur ini opsional — prediksi ML tetap jalan tanpa API Key.
+
+---
+
+## 📊 Model Info
 
 | | Value |
 |---|---|
 | Arsitektur | TensorFlow Functional API + Custom Layer |
 | Custom Layer | `SpatialDensityEmbedding` |
-| Custom Loss | `zonasi_custom_loss` (weighted, VIOLATION_WEIGHT=6.0) |
+| Custom Loss | `zonasi_custom_loss` (VIOLATION_WEIGHT=6.0) |
 | Accuracy | 77.44% |
 | AUC-ROC | 0.8655 |
 | F1 Score | 0.5455 |
 | Recall (Violation) | 0.90 |
-| MAE | 0.2256 |
 | Threshold | 0.41 |
 | Dataset | Jakarta Selatan (662 data points) |
 
-## Catatan Model
+---
 
-Model final ini merupakan versi yang telah diperbaiki dari versi awal. Pada versi awal, ditemukan **target leakage** pada fitur `jarak_pasar_meter` (korelasi 0.57 dengan label) yang menyebabkan akurasi 100% secara artifisial. Fitur tersebut dihapus karena pada dasarnya mereplikasi business rule IF sederhana tanpa nilai tambah ML.
+## 📝 Catatan Model
 
-Model final mengandalkan purely spatial features (density, clustering, koordinat) sehingga dapat menggeneralisasi ke kondisi yang lebih kompleks. Threshold dipilih 0.41 berdasarkan threshold tuning untuk memaksimalkan F1 Score dan Recall pelanggaran (0.90).
+Fitur `jarak_pasar_meter` dihapus dari versi final karena teridentifikasi sebagai **target leakage** (korelasi 0.57). Model final mengandalkan purely spatial features sehingga dapat menggeneralisasi ke kondisi yang lebih kompleks.

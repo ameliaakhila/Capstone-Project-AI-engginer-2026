@@ -1,19 +1,19 @@
 import os
-import google.generativeai as genai
+from google import genai
 from typing import Optional
 
-
 class GeminiClient:
-    def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key or os.getenv("GEMINI_API_KEY")
-        self.model   = None
-
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+        self.client = None
+        
         if not self.api_key or self.api_key == "YOUR_API_KEY_HERE":
             print("⚠️ WARNING: GEMINI_API_KEY belum dikonfigurasi di .env")
             return
+            
         try:
-            genai.configure(api_key=self.api_key)
-            self.model = genai.GenerativeModel('gemini-2.5-flash')
+            # The ONLY initialization you need in the new SDK
+            self.client = genai.Client(api_key=self.api_key)
         except Exception as e:
             print(f"⚠️ WARNING: Gagal inisialisasi awal: {str(e)}")
 
@@ -23,7 +23,8 @@ class GeminiClient:
         competitor_density: float,
         jarak_kompetitor: float,
     ) -> str:
-        if not self.api_key or self.api_key == "YOUR_API_KEY_HERE":
+        # Check if client was successfully initialized
+        if not self.client:
             return "Rekomendasi AI tidak tersedia (API Key belum dikonfigurasi)."
 
         prompt = (
@@ -33,23 +34,23 @@ class GeminiClient:
         )
 
         models_to_try = [
-            'gemini-2.5-flash',
+            'gemini-2.5-flash-preview-05-20',  
             'gemini-2.0-flash',
-            'gemini-flash-latest',
-            'gemini-pro-latest',
+            'gemini-1.5-flash',
         ]
         last_error = "Tidak ada model yang merespon"
 
         for model_name in models_to_try:
             try:
-                temp_model = genai.GenerativeModel(model_name)
-                response   = temp_model.generate_content(prompt)
+                response = self.client.models.generate_content(
+                    model=model_name,
+                    contents=prompt
+                )
                 if response and response.text:
                     return response.text.strip()
             except Exception as e:
                 last_error = str(e)
-                if "404" in last_error or "not found" in last_error.lower():
-                    continue
-                return f"Gagal AI ({model_name}): {last_error}"
+                print(f"⚠️ Model {model_name} gagal: {last_error}")
+                continue
 
-        return f"Gagal mendapatkan rekomendasi AI: {last_error}. Pastikan API KEY valid dan library sudah di-upgrade."
+        return f"Gagal mendapatkan rekomendasi AI: {last_error}. Pastikan API KEY valid."

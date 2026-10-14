@@ -13,7 +13,6 @@ def create_app():
     app = Flask(__name__)
     CORS(app)
 
-    # Dependency Injection
     ml_repo = MLRepository(
         model_path  = "models/zonify_model.keras",
         scaler_path = "models/scaler.pkl"
@@ -24,32 +23,24 @@ def create_app():
 
     @app.route('/', methods=['GET'])
     def index():
-        return {
-            "status"   : "online",
-            "message"  : "Zonify AI API is running successfully",
-            "version"  : "3.0.0",
-            "endpoints": [
-                "/api/zonasi/predict (POST)",
-                "/api/zonasi/analytics (GET)",
-                "/api/zonasi/model-metadata (GET)"
-            ]
-        }
+        return {"status": "online", "message": "Zonify AI API is running successfully", "version": "3.0.0"}
 
-    @app.route('/api/zonasi/predict', methods=['POST'])
+    @app.route('/api/v1/ai/predict', methods=['POST'])
     def predict():
         return zonasi_controller.predict()
 
-    @app.route('/api/zonasi/analytics', methods=['GET'])
+    @app.route('/api/v1/ai/analytics', methods=['GET'])
     def analytics():
         return zonasi_controller.get_analytics()
 
-    @app.route('/api/zonasi/model-metadata', methods=['GET'])
+    @app.route('/api/v1/ai/model-metadata', methods=['GET'])
     def metadata():
         return zonasi_controller.get_model_metadata()
 
     return app
 
+app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
-    port = int(os.getenv("PORT", 5000))
-    app.run(debug=True, use_reloader=True, host='0.0.0.0', port=port)
+    port = int(os.getenv("PORT", 7860))
+    app.run(debug=False, use_reloader=False, host='0.0.0.0', port=port)

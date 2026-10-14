@@ -1,9 +1,20 @@
-flask
-flask-cors
-tensorflow
-numpy
-pandas
-scikit-learn
-google-generativeai
-python-dotenv
-imbalanced-learn
+# Pilih TF sesuai Python kamu:
+#   Python 3.12  →  tensorflow-cpu==2.21.0
+#   Python 3.10  →  tensorflow-cpu==2.19.0
+
+flask==3.1.1
+flask-cors==5.0.1
+
+# tensorflow-cpu ==2.21.0     # uncomment kalau Python 3.12
+tensorflow-cpu==2.19.0       # aktif — Python 3.10 / Docker
+
+numpy==1.26.4
+pandas==2.2.3
+scikit-learn==1.6.1
+protobuf>=3.20.2,<5.0.0
+# google-genai==1.0.0   # uncomment kalau Python 3.12
+google-genai==2.7.0     # aktif — Python 3.10 / Docker
+python-dotenv==1.1.0
+imbalanced-learn==0.13.0
+tensorboard
+gunicorn==21.2.0
